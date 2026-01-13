@@ -1,14 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: 'export',
   images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "**",
-      },
-    ],
+    unoptimized: true,
   },
+  // Uncomment if deploying to a subdirectory
+  // basePath: '/your-repo-name',
+  // assetPrefix: '/your-repo-name',
 };
 
 export default nextConfig;
