@@ -1,18 +1,25 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Zap, BookOpen, Shield, Brain } from "lucide-react";
+import { ArrowRight, Zap, BookOpen, Shield, Brain, Menu, X } from "lucide-react";
 
 export default function Home() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-primary-50">
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-sm fixed top-0 w-full z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="container mx-auto px-4 py-3 md:py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-              <Zap className="w-6 h-6 text-white" />
+            <div className="w-8 h-8 md:w-10 md:h-10 bg-primary rounded-lg flex items-center justify-center">
+              <Zap className="w-5 h-5 md:w-6 md:h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold text-gray-900">SnapDx</span>
+            <span className="text-xl md:text-2xl font-bold text-gray-900">SnapDx</span>
           </div>
+          
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6">
             <Link href="/about" className="text-gray-600 hover:text-gray-900">About</Link>
             <Link href="/pricing" className="text-gray-600 hover:text-gray-900">Pricing</Link>
@@ -24,23 +31,67 @@ export default function Home() {
               Get Started
             </Link>
           </nav>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2 text-gray-600 hover:text-gray-900"
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t bg-white">
+            <nav className="flex flex-col p-4 space-y-3">
+              <Link 
+                href="/about" 
+                className="text-gray-600 hover:text-gray-900 py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                About
+              </Link>
+              <Link 
+                href="/pricing" 
+                className="text-gray-600 hover:text-gray-900 py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Pricing
+              </Link>
+              <Link 
+                href="/login" 
+                className="text-gray-600 hover:text-gray-900 py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Login
+              </Link>
+              <Link 
+                href="/signup" 
+                className="bg-primary text-white px-4 py-3 rounded-lg hover:bg-primary-600 transition-colors text-center"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Get Started
+              </Link>
+            </nav>
+          </div>
+        )}
       </header>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4">
+      <section className="pt-24 md:pt-32 pb-12 md:pb-20 px-4">
         <div className="container mx-auto text-center max-w-4xl">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary-100 text-primary-700 rounded-full text-sm font-medium mb-8">
-            <Zap className="w-4 h-4" />
+          <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-primary-100 text-primary-700 rounded-full text-xs md:text-sm font-medium mb-6 md:mb-8">
+            <Zap className="w-3 h-3 md:w-4 md:h-4" />
             <span>AI-Powered Orthopedic Education</span>
           </div>
           
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 md:mb-6 leading-tight px-2">
             From Confusion to Clarity<br />
             <span className="text-primary">in a Snap</span>
           </h1>
           
-          <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
+          <p className="text-base md:text-xl text-gray-600 mb-8 md:mb-12 max-w-2xl mx-auto px-4">
             Instant orthopedic insights for medical students and residents. 
             Upload X-rays, get AI-powered analysis, and master fracture classifications faster.
           </p>

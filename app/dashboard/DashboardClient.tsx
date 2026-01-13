@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Zap, LogOut, AlertCircle, X } from "lucide-react";
+import { Zap, LogOut, AlertCircle, X, Menu } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { SessionSidebar } from "@/components/chat/SessionSidebar";
@@ -49,6 +49,7 @@ export function DashboardClient({ initialProfile, initialSessions }: DashboardCl
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [profile, setProfile] = useState(initialProfile);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Load messages when session changes
   useEffect(() => {
@@ -94,6 +95,7 @@ export function DashboardClient({ initialProfile, initialSessions }: DashboardCl
 
   const handleSelectSession = (id: string) => {
     setCurrentSessionId(id);
+    setSidebarOpen(false); // Close mobile sidebar after selection
   };
 
   const handleDeleteSession = async (id: string) => {
@@ -205,16 +207,26 @@ export function DashboardClient({ initialProfile, initialSessions }: DashboardCl
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b">
-        <div className="px-4 py-4 flex items-center justify-between">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-              <Zap className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold text-gray-900">SnapDx</span>
-          </Link>
+      <header className="bg-white border-b flex-shrink-0">
+        <div className="px-3 md:px-4 py-3 md:py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 md:gap-3">
+            {/* Mobile Menu Toggle */}
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <Menu className="w-5 h-5 text-gray-600" />
+            </button>
+            
+            <Link href="/dashboard" className="flex items-center gap-2">
+              <div className="w-8 h-8 md:w-10 md:h-10 bg-primary rounded-lg flex items-center justify-center">
+                <Zap className="w-5 h-5 md:w-6 md:h-6 text-white" />
+              </div>
+              <span className="text-lg md:text-2xl font-bold text-gray-900">SnapDx</span>
+            </Link>
+          </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 md:gap-4">
             <div className="hidden md:block text-right">
               <p className="text-sm font-medium text-gray-900">
                 {profile?.full_name || profile?.email}
@@ -223,27 +235,41 @@ export function DashboardClient({ initialProfile, initialSessions }: DashboardCl
                 {profile?.usage_count || 0} cases analyzed
               </p>
             </div>
-            <Button variant="ghost" size="sm" onClick={handleSignOut}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
+            <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-xs md:text-sm">
+              <LogOut className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+              <span className="hidden md:inline">Sign Out</span>
             </Button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Mobile Sidebar Overlay */}
+        {sidebarOpen && (
+          <div 
+            className="lg:hidden fixed inset-0 bg-black/50 z-40"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
         {/* Session Sidebar */}
-        <SessionSidebar
-          sessions={sessions}
-          currentSessionId={currentSessionId}
-          onSelectSession={handleSelectSession}
-          onNewSession={handleNewSession}
-          onDeleteSession={handleDeleteSession}
-        />
+        <div className={`
+          fixed lg:relative inset-y-0 left-0 z-50
+          transform transition-transform duration-300 ease-in-out
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        `}>
+          <SessionSidebar
+            sessions={sessions}
+            currentSessionId={currentSessionId}
+            onSelectSession={handleSelectSession}
+            onNewSession={handleNewSession}
+            onDeleteSession={handleDeleteSession}
+          />
+        </div>
 
         {/* Chat Area */}
-        <div className="flex-1 flex flex-col bg-white">
+        <div className="flex-1 flex flex-col bg-white w-full">
           {/* Error Banner */}
           {errorMessage && (
             <div className="bg-red-50 border-l-4 border-red-500 p-4 m-4 rounded-r-lg">

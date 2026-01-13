@@ -47,8 +47,8 @@ export function MessageInput({ onSendMessage, disabled }: MessageInputProps) {
   };
 
   return (
-    <div className="border-t bg-white p-4">
-      <form onSubmit={handleSubmit} className="flex gap-3 items-end">
+    <div className="border-t bg-white p-3 md:p-4 flex-shrink-0">
+      <form onSubmit={handleSubmit} className="flex gap-2 md:gap-3 items-start">
         <div className="flex-1 relative">
           <textarea
             ref={textareaRef}
@@ -58,13 +58,13 @@ export function MessageInput({ onSendMessage, disabled }: MessageInputProps) {
               adjustTextareaHeight();
             }}
             onKeyDown={handleKeyDown}
-            placeholder="Ask about orthopedic cases, fractures, classifications..."
+            placeholder="Ask about cases, fractures..."
             disabled={disabled || isSending}
             rows={1}
-            className="w-full resize-none rounded-lg border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full resize-none rounded-lg border border-gray-300 px-3 md:px-4 py-2 md:py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ maxHeight: "200px" }}
           />
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="hidden sm:block text-xs text-gray-500 mt-1">
             Press Enter to send, Shift+Enter for new line
           </p>
         </div>
@@ -72,14 +72,14 @@ export function MessageInput({ onSendMessage, disabled }: MessageInputProps) {
           type="submit"
           disabled={!message.trim() || disabled || isSending}
           size="lg"
-          className="flex-shrink-0"
+          className="flex-shrink-0 px-3 md:px-4 h-[42px] md:h-[46px]"
         >
           {isSending ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
+            <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
           ) : (
             <>
-              <Send className="w-5 h-5 mr-2" />
-              Send
+              <Send className="w-4 h-4 md:w-5 md:h-5 md:mr-2" />
+              <span className="hidden md:inline">Send</span>
             </>
           )}
         </Button>

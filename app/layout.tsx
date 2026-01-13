@@ -8,6 +8,11 @@ export const metadata: Metadata = {
   title: "SnapDx - Instant Orthopedic Insights",
   description: "AI-powered educational platform for medical students and orthopedic residents. Learn faster, diagnose smarter.",
   keywords: ["orthopedics", "medical education", "AI", "fracture classification", "medical students"],
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 5,
+  },
 };
 
 export default function RootLayout({

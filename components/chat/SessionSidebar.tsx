@@ -40,10 +40,10 @@ export function SessionSidebar({
   };
 
   return (
-    <div className="w-80 bg-white border-r flex flex-col h-full">
+    <div className="w-72 sm:w-80 bg-white border-r flex flex-col h-full shadow-lg lg:shadow-none">
       {/* Header */}
-      <div className="p-4 border-b">
-        <Button onClick={onNewSession} className="w-full">
+      <div className="p-3 md:p-4 border-b">
+        <Button onClick={onNewSession} className="w-full text-sm md:text-base">
           <Plus className="w-4 h-4 mr-2" />
           New Case
         </Button>

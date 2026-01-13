@@ -50,22 +50,22 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 space-y-6">
+    <div className="flex-1 overflow-y-auto p-3 md:p-6 space-y-4 md:space-y-6">
       {messages.map((message) => (
         <div
           key={message.id}
-          className={`flex gap-4 ${
+          className={`flex gap-2 md:gap-4 ${
             message.role === "user" ? "justify-end" : "justify-start"
           }`}
         >
           {message.role === "assistant" && (
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
-              <Bot className="w-5 h-5 text-white" />
+            <div className="w-7 h-7 md:w-8 md:h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
+              <Bot className="w-4 h-4 md:w-5 md:h-5 text-white" />
             </div>
           )}
 
           <div
-            className={`max-w-3xl rounded-2xl px-4 py-3 ${
+            className={`max-w-[85%] md:max-w-3xl rounded-2xl px-3 md:px-4 py-2 md:py-3 ${
               message.role === "user"
                 ? "bg-primary text-white"
                 : "bg-gray-100 text-gray-900"
@@ -103,8 +103,8 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
           </div>
 
           {message.role === "user" && (
-            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center flex-shrink-0">
-              <User className="w-5 h-5 text-white" />
+            <div className="w-7 h-7 md:w-8 md:h-8 bg-primary-600 rounded-lg flex items-center justify-center flex-shrink-0">
+              <User className="w-4 h-4 md:w-5 md:h-5 text-white" />
             </div>
           )}
         </div>

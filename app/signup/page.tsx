@@ -92,12 +92,12 @@ export default function SignupPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-white to-primary-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to-b from-white to-primary-50 flex items-center justify-center px-4 py-8">
         <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
+          <CardContent className="pt-6 p-4 md:p-6">
             <div className="text-center space-y-4">
-              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                <CheckCircle className="w-8 h-8 text-green-600" />
+              <div className="mx-auto w-12 h-12 md:w-16 md:h-16 bg-green-100 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-6 h-6 md:w-8 md:h-8 text-green-600" />
               </div>
               <h2 className="text-2xl font-bold">Account Created!</h2>
               <p className="text-gray-600">

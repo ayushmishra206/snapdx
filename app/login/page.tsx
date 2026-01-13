@@ -62,20 +62,20 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-primary-50 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-gradient-to-b from-white to-primary-50 flex items-center justify-center px-4 py-8 md:py-12">
       <div className="w-full max-w-md">
         {/* Logo */}
-        <Link href="/" className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
-            <Zap className="w-7 h-7 text-white" />
+        <Link href="/" className="flex items-center justify-center gap-2 mb-6 md:mb-8">
+          <div className="w-10 h-10 md:w-12 md:h-12 bg-primary rounded-lg flex items-center justify-center">
+            <Zap className="w-6 h-6 md:w-7 md:h-7 text-white" />
           </div>
-          <span className="text-3xl font-bold text-gray-900">SnapDx</span>
+          <span className="text-2xl md:text-3xl font-bold text-gray-900">SnapDx</span>
         </Link>
 
         <Card>
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center">Welcome back</CardTitle>
-            <CardDescription className="text-center">
+          <CardHeader className="space-y-1 p-4 md:p-6">
+            <CardTitle className="text-xl md:text-2xl text-center">Welcome back</CardTitle>
+            <CardDescription className="text-center text-sm">
               Sign in to your SnapDx account
             </CardDescription>
           </CardHeader>
