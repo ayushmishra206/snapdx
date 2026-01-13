@@ -6,6 +6,66 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
+// Log API key status on initialization (only first 10 chars for security)
+if (!process.env.ANTHROPIC_API_KEY) {
+  console.error("❌ ANTHROPIC_API_KEY is not set in environment variables!");
+} else {
+  const keyPrefix = process.env.ANTHROPIC_API_KEY.substring(0, 10);
+  console.log(`✓ Anthropic API Key loaded: ${keyPrefix}...`);
+}
+
+// Cache for available models (refreshed periodically)
+let cachedModels: string[] = [];
+let lastModelFetch: number = 0;
+const MODEL_CACHE_TTL = 3600000; // 1 hour in milliseconds
+
+// Fetch available models from Anthropic API
+async function getAvailableModels(): Promise<string[]> {
+  const now = Date.now();
+  
+  // Return cached models if still valid
+  if (cachedModels.length > 0 && now - lastModelFetch < MODEL_CACHE_TTL) {
+    return cachedModels;
+  }
+
+  try {
+    console.log("🔍 Fetching available Claude models...");
+    const models: string[] = [];
+    
+    // Fetch models using the beta API
+    for await (const modelInfo of anthropic.beta.models.list()) {
+      models.push(modelInfo.id);
+    }
+    
+    // Filter to only message-capable models and sort by preference
+    const messageModels = models.filter(id => 
+      id.includes('claude') && !id.includes('embed')
+    ).sort((a, b) => {
+      // Prioritize: haiku (cheapest) > sonnet > opus (most expensive)
+      if (a.includes('haiku')) return -1;
+      if (b.includes('haiku')) return 1;
+      if (a.includes('sonnet')) return -1;
+      if (b.includes('sonnet')) return 1;
+      return b.localeCompare(a); // Newest first for same tier
+    });
+    
+    cachedModels = messageModels;
+    lastModelFetch = now;
+    
+    console.log(`✓ Found ${messageModels.length} available models:`, messageModels.slice(0, 5));
+    return messageModels;
+  } catch (error) {
+    console.error("Failed to fetch models, using fallback list:", error);
+    // Fallback to known models if API call fails (cheapest first)
+    return [
+      "claude-3-5-haiku-20241022",     // Cheapest
+      "claude-3-haiku-20240307",       // Older haiku
+      "claude-3-5-sonnet-20241022",    // Mid-tier
+      "claude-sonnet-4-20250514",      // More expensive
+    ];
+  }
+}
+
 const SNAPDX_SYSTEM_PROMPT = `You are SnapDx, an AI educational assistant for orthopedic learning. You help medical students and residents understand fractures, diseases, and management protocols.
 
 ## Core Rules:
@@ -97,27 +157,83 @@ export async function POST(request: Request) {
     // Call Claude API
     let response;
     try {
-      response = await anthropic.messages.create({
-        model: "claude-3-5-sonnet-20241022",
-        max_tokens: 1024,
-        system: SNAPDX_SYSTEM_PROMPT,
-        messages: conversationMessages,
-      });
+      // Check if API key is set
+      if (!process.env.ANTHROPIC_API_KEY) {
+        throw new Error("ANTHROPIC_API_KEY environment variable is not set");
+      }
+
+      // Get available models dynamically
+      const availableModels = await getAvailableModels();
+      
+      if (availableModels.length === 0) {
+        throw new Error("No Claude models available");
+      }
+      
+      let lastError;
+      let attemptedModels: string[] = [];
+      
+      // Try each available model until one works
+      for (const model of availableModels) {
+        try {
+          console.log(`Attempting to use model: ${model}...`);
+          response = await anthropic.messages.create({
+            model,
+            max_tokens: 1024,
+            system: SNAPDX_SYSTEM_PROMPT,
+            messages: conversationMessages,
+          });
+          console.log(`✓ Successfully using model: ${model}`);
+          break; // Success, exit loop
+        } catch (modelError: any) {
+          attemptedModels.push(model);
+          console.log(`✗ Model ${model} failed:`, modelError.status, modelError.message);
+          lastError = modelError;
+          
+          // Only try up to 3 models to avoid long delays
+          if (attemptedModels.length >= 3) {
+            break;
+          }
+          continue; // Try next model
+        }
+      }
+      
+      if (!response) {
+        console.error(`❌ All attempted models failed: ${attemptedModels.join(", ")}`);
+        throw lastError || new Error("All available Claude models failed");
+      }
     } catch (anthropicError: any) {
       // Handle Anthropic API errors (credits, rate limits, etc.)
-      console.error("Anthropic API Error:", anthropicError);
+      console.error("Anthropic API Error:", JSON.stringify(anthropicError, null, 2));
       
       // Delete the user message since we couldn't get a response
       await supabase.from("messages").delete().eq("id", userMessage.id);
       
-      if (anthropicError.status === 400 && anthropicError.message?.includes("credit balance")) {
+      const errorMessage = anthropicError.message || anthropicError.error?.message || "";
+      const errorType = anthropicError.error?.type || "";
+      const errorStatus = anthropicError.status;
+      
+      // Check for model not found (404) - API key tier issue
+      if (errorStatus === 404 || errorType === "not_found_error") {
         return NextResponse.json(
-          { error: "AI service credits exhausted. Please contact support or add credits to your Anthropic account." },
+          { error: "⚠️ Your Anthropic API key doesn't have access to Claude models. Please:\n1. Check your API key at console.anthropic.com\n2. Verify billing is set up (add credits)\n3. Make sure your key starts with 'sk-ant-api03-'\n4. Try generating a new API key" },
+          { status: 403 }
+        );
+      }
+      
+      // Check for credit balance issues
+      if (
+        errorMessage.toLowerCase().includes("credit balance") ||
+        errorMessage.toLowerCase().includes("billing") ||
+        errorType === "invalid_request_error"
+      ) {
+        return NextResponse.json(
+          { error: "⚠️ Anthropic API credits needed. Please add credits at console.anthropic.com → Plans & Billing. See ANTHROPIC_SETUP.md for details." },
           { status: 400 }
         );
       }
       
-      if (anthropicError.status === 429) {
+      // Check for rate limits
+      if (anthropicError.status === 429 || errorMessage.toLowerCase().includes("rate limit")) {
         return NextResponse.json(
           { error: "AI service rate limit reached. Please try again in a moment." },
           { status: 429 }
@@ -125,7 +241,7 @@ export async function POST(request: Request) {
       }
       
       return NextResponse.json(
-        { error: "AI service temporarily unavailable. Please try again later." },
+        { error: `AI service error: ${errorMessage || "Please check your Anthropic API key and credits."}` },
         { status: 503 }
       );
     }
@@ -142,7 +258,7 @@ export async function POST(request: Request) {
         role: "assistant",
         content: aiContent,
         metadata: {
-          model: "claude-3-5-sonnet-20241022",
+          model: response.model || "claude-sonnet-4-20250514",
           usage: response.usage,
         },
       })
